@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Secret$tr0ngP@ssw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  api:
+    build: .
+    container_name: basicblogapi
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__BasicBlogPlatformConnection=Server=tcp:blog-sqlsrv.database.windows.net,1433;Initial Catalog=BasicBlogPlatformDb;User Id=Teslim@blog-sqlsrv;Password=Secret$tr0ngP@ssw0rd;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=False
+    ports:
+      - "8080:80"
+
+volumes:
+  mssql_data:

@@ -1,0 +1,6 @@
+@BasicBlog.Platform_HostAddress = http://localhost:5271
+
+GET {{BasicBlog.Platform_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

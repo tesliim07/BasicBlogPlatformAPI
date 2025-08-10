@@ -49,9 +49,13 @@ A simple ASP.NET Core Web API for a blogging platform. This project demonstrates
 
 ## Usage
 
-- Use Swagger UI or tools like Postman to interact with the API.
+- Use Swagger UI or tools like Postman to interact with the API or click the website link available in the About section.
 - Endpoints are available for managing authors and blog posts.
 
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to do
+
+## Notes
+This project is for educational/demo purposes only. Some security measures are intentionally not implemented and it should **not** be used as-is in production.  
+If you plan to deploy publicly, add at minimum: authentication/authorization, input validation, rate limiting, and proper secret management.

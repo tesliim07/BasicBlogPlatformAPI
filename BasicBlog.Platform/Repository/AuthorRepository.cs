@@ -26,6 +26,11 @@ namespace BasicBlog.Platform.Repository
             var authors = _blogPlatformDbContext.Authors
                 .OrderBy(author => author.Id)
                 .ToList();
+            if(authors.Count() == 0)
+            {
+                _logger.LogInformation("No authors found, [AuthorRepository]");
+                return new List<Author>();
+            }
             return authors;
 
         }
@@ -40,15 +45,26 @@ namespace BasicBlog.Platform.Repository
             }
             return author;
         }
-        public string UpdateAuthor(Guid id, string userName)
+        public Author GetAuthorByUserName(string userName)
+        {
+            var author = _blogPlatformDbContext.Authors
+                .FirstOrDefault(author => author.UserName == userName);
+            if (author == null)
+            {
+                _logger.LogInformation("Invalid UserName, [AuthorRepository]");
+                return null;
+            }
+            return author;
+        }
+        public string UpdateAuthorUserName(Guid id, string newUserName)
         {
             var author = GetAuthorById(id);
             if(author == null)
             {
-                _logger.LogInformation("Unable to update Author due to invalid Id");
+                _logger.LogInformation("Unable to update Author username due to invalid Id");
                 return "Update was unsuccessful";
             }
-            author.UserName = userName;
+            author.UserName = newUserName;
             _blogPlatformDbContext.Authors.Update(author);
             _blogPlatformDbContext.SaveChanges();
             return "Update was successful";

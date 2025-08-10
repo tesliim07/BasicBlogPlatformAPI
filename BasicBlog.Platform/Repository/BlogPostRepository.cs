@@ -16,28 +16,20 @@ namespace BasicBlog.Platform.Repository
             _logger = logger;
         }
 
-        //public Author GetAuthorById(Guid id)
-        //{
-        //    var author = _blogPlatformDbContext.Authors
-        //        .FirstOrDefault(author => author.Id == id);
-        //    if (author == null)
-        //    {
-        //        _logger.LogInformation("Invalid Id, [AuthorRepository]");
-        //        return null;
-        //    }
-        //    return author;
-        //}
-
         public Guid CreateBlogPost(BlogPost blogPost)
         {
             _blogPlatformDbContext.BlogPosts.Add(blogPost);
             _blogPlatformDbContext.SaveChanges();
             return blogPost.Id;
-
         }
         public List<BlogPost> GetAllBlogPosts()
         {
             var blogPosts = _blogPlatformDbContext.BlogPosts.Include(p => p.Author).OrderBy(blogPost => blogPost.Id).ToList();
+            if (blogPosts.Count == 0)
+            {
+                _logger.LogInformation("No blog posts found, [BlogPost Repository]");
+                return new List<BlogPost>();
+            }
             return blogPosts;
         }
         public BlogPost GetBlogPostById(Guid id)
@@ -50,6 +42,21 @@ namespace BasicBlog.Platform.Repository
             }
             return blogPost;
         }
+        public List<BlogPost> GetBlogPostsByAuthorUserName(string authorUserName)
+        {
+            if (string.IsNullOrEmpty(authorUserName))
+            {
+                _logger.LogInformation("Author username cannot be null or empty, [BlogPost Repository]");
+                return new List<BlogPost>();
+            }
+            List<BlogPost> blogPosts = _blogPlatformDbContext.BlogPosts.Include(p => p.Author.UserName == authorUserName).OrderByDescending(blogPost => blogPost.DateCreated).ToList();
+            if (blogPosts.Count() == 0)
+            {
+                _logger.LogInformation("Invalid Id, [BlogPost Repository]");
+                return new List<BlogPost>();
+            }
+            return blogPosts;
+        }
         public string UpdateBlogPost(Guid id, string title, string content)
         {
             var blogPost = GetBlogPostById(id);
@@ -58,14 +65,17 @@ namespace BasicBlog.Platform.Repository
                 _logger.LogInformation($"Unable to update BlogPost due to invalid Id: {id}, [BlogPost Repository]");
                 return "Update was unsuccessful";
             }
-            if (title.Trim() != "")
+            if (DateTime.Now.Subtract(blogPost.DateCreated) >= new System.TimeSpan(0,0,10,0,0,0))
             {
-                blogPost.Title = title.Trim();
+                return "Update was unsuccessful, blog post is older than 10 minutes";
             }
-            if (content.Trim() != "")
+            if (title.Trim() == "" || content.Trim() == "")
             {
-                blogPost.Content = content.Trim();
+                _logger.LogInformation("Title or content cannot be empty, [BlogPost Repository]");
+                return "Update was unsuccessful";
             }
+            blogPost.Content = content.Trim();
+            blogPost.Title = title.Trim();
             _blogPlatformDbContext.BlogPosts.Update(blogPost);
             _blogPlatformDbContext.SaveChanges();
             return "Update was successful";

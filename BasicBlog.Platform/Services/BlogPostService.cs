@@ -1,8 +1,6 @@
 ﻿using BasicBlog.Platform.Models;
 using BasicBlog.Platform.Repository.Interfaces;
 using BasicBlog.Platform.Services.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Linq.Expressions;
 
 namespace BasicBlog.Platform.Services
 {
@@ -21,17 +19,18 @@ namespace BasicBlog.Platform.Services
 
         public Guid CreateBlogPost(BlogPostCreateDto blogPostCreate)
         {
+            var author = _authorRepository.GetAuthorById(blogPostCreate.AuthorId);
+            if (author == null || blogPostCreate.Title.Trim() == "" || blogPostCreate.Content.Trim() == "")
+            {
+                _logger.LogInformation("Author not found or title/content is empty, [BlogPost Service]");
+                return Guid.Empty;
+            }
             var dto = new BlogPostCreateDto()
             {
                 Title = blogPostCreate.Title,
                 Content = blogPostCreate.Content,
                 AuthorId = blogPostCreate.AuthorId
             };
-            var author = _authorRepository.GetAuthorById(dto.AuthorId);
-            if (author == null)
-            {
-                return Guid.Empty;
-            }
             var newBlogPost = new BlogPost
             {
                 Id = Guid.NewGuid(),
@@ -48,12 +47,29 @@ namespace BasicBlog.Platform.Services
         public List<BlogPost> GetAllBlogPosts()
         {
             var blogPosts = _blogPostRepository.GetAllBlogPosts();
+            if (blogPosts.Count == 0)
+            {
+                return new List<BlogPost>();
+            }
             return blogPosts;
         }
         public BlogPost GetBlogPostById(Guid id)
         {
             var blogPost = _blogPostRepository.GetBlogPostById(id);
+            if (blogPost == null)
+            {
+                return null;
+            }
             return blogPost;
+        }
+        public List<BlogPost> GetBlogPostsByAuthorUserName(string authorUserName)
+        {
+            var blogPosts = _blogPostRepository.GetBlogPostsByAuthorUserName(authorUserName);
+            if (blogPosts.Count == 0)
+            {
+                return new List<BlogPost>();
+            }
+            return blogPosts;
         }
         public string UpdateBlogPost(Guid id, string title, string content)
         {

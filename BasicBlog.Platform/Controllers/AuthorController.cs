@@ -16,9 +16,13 @@ namespace BasicBlog.Platform.Controllers
         }
 
         [HttpPost("CreateAuthor")]
-        public ActionResult<Guid> CreateAuthor([FromBody] Author author)
+        public ActionResult<Guid> CreateAuthor([FromBody] AuthorCreateDto author)
         {
             var createAuthorId = _authorService.CreateAuthor(author);
+            if(createAuthorId == Guid.Empty)
+            {
+                return NotFound("Author creation failed.");
+            }
             return Ok(createAuthorId);
 
         }
@@ -27,20 +31,39 @@ namespace BasicBlog.Platform.Controllers
         public ActionResult<List<Author>> GetAllAuthors()
         {
             var authors = _authorService.GetAllAuthors();
+            if(authors.Count == 0)
+            {
+                return NotFound("No authors found.");
+            }
             return Ok(authors);
         }
 
-        [HttpGet("GetAuthorById/{id:guid}")]
+        [HttpGet("GetAuthorById/{authorId:guid}")]
         public ActionResult<Author> GetAuthorById(Guid id)
         {
             var author = _authorService.GetAuthorById(id);
+            if (author == null)
+            {
+                return NotFound($"Author with ID {id} not found.");
+            }
             return Ok(author);
         }
 
-        [HttpPatch("UpdateAuthor/{id:guid}/{userName}")]
-        public ActionResult<string> UpdateAuthor(Guid id, string userName)
+        [HttpGet("GetAuthorByUserName/{userName}")]
+        public ActionResult<Author> GetAuthorByUserName(string userName)
         {
-            var updateMesssage = _authorService.UpdateAuthor(id,userName);
+            var author = _authorService.GetAuthorByUserName(userName);
+            if (author == null)
+            {
+                return NotFound($"Author with username {userName} not found.");
+            }
+            return Ok(author);
+        }
+
+        [HttpPatch("UpdateAuthorUserName/{authorId:guid}/{newUserName}")]
+        public ActionResult<string> UpdateAuthor(Guid id, string newUserName)
+        {
+            var updateMesssage = _authorService.UpdateAuthorUserName(id,newUserName);
             return Ok(updateMesssage);
         }
 

@@ -22,3 +22,5 @@ publish/
 docker-compose.override.yml
 
 appsettings.json
+docker-compose.override.yml
+docker-compose.yml

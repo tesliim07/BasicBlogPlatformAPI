@@ -15,14 +15,24 @@ namespace BasicBlog.Platform.Services
             _logger = logger;
         }
 
-        public Guid CreateAuthor(Author author)
+        public Guid CreateAuthor(AuthorCreateDto author)
         {
-            var newAuthor = new Author
+            if (author == null || author.UserName.Trim()== "" || author.Email.Trim() == "" || author.DateOfBirth > new DateOnly(2013,1,1))
             {
-                Id = Guid.NewGuid(),
+                _logger.LogInformation("Author creation failed due to empty fields, [AuthorService]");
+                return Guid.Empty;
+            }
+            var dto = new AuthorCreateDto()
+            {
                 UserName = author.UserName,
                 Email = author.Email,
                 DateOfBirth = author.DateOfBirth
+            };
+            var newAuthor = new Author(){
+                Id = Guid.NewGuid(),
+                UserName = dto.UserName,
+                Email = dto.Email,
+                DateOfBirth = dto.DateOfBirth
             };
             var authorId = _authorRepository.CreateAuthor(newAuthor);
             return authorId;
@@ -30,6 +40,10 @@ namespace BasicBlog.Platform.Services
         public List<Author> GetAllAuthors()
         {
             var authors = _authorRepository.GetAllAuthors();
+            if (authors.Count == 0)
+            {
+                return new List<Author>();
+            }
             return authors;
         }
         public Author GetAuthorById(Guid id)
@@ -37,14 +51,22 @@ namespace BasicBlog.Platform.Services
             var author = _authorRepository.GetAuthorById(id);
             if (author == null)
             {
-                _logger.LogInformation($"No Author could be gotten from {id}, [AuthorService]");
                 return null;
             }
             return author;
         }
-        public string UpdateAuthor(Guid id, string userName)
+        public Author GetAuthorByUserName(string userName)
         {
-            var updateMessage = _authorRepository.UpdateAuthor(id, userName);
+            var author = _authorRepository.GetAuthorByUserName(userName);
+            if (author == null)
+            {
+                return null;
+            }
+            return author;
+        }
+        public string UpdateAuthorUserName(Guid id, string newUserName)
+        {
+            var updateMessage = _authorRepository.UpdateAuthorUserName(id, newUserName);
             return updateMessage;
         }
         public string DeleteAuthor(Guid id)
